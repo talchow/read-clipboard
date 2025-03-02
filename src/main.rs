@@ -9,16 +9,18 @@
 use std::{fs::OpenOptions, io::Write, thread, time::Duration};
 
 use copypasta::{ClipboardContext, ClipboardProvider};
+mod error;
+use error::FileError;
 
-fn main() {
-    let mut clipboard = ClipboardContext::new().expect("msg");
+fn main()-> Result<(), FileError> {
+    let mut clipboard = ClipboardContext::new()?;
     let mut last_content = String::new();
 
     loop {
         match clipboard.get_contents() {
             Ok(current_content) => {
                 if current_content != last_content && !current_content.is_empty() {
-                    save_to_file(&current_content);
+                    let _ = save_to_file(&current_content);
                     last_content = current_content;
                 }
             }
@@ -31,13 +33,13 @@ fn main() {
     }
 }
 
-fn save_to_file(content: &str) {
+fn save_to_file(content: &str) -> Result<(), FileError> {
     let path = "/Users/tao/notes/clipboard.txt";
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
-        .open(path)
-        .expect("Failed to open file");
+        .open(path)?;
 
-  file.write_all(content.as_bytes()).expect("Failed to write to file");
+  file.write_all(content.as_bytes())?;
+  Ok(())
 }
